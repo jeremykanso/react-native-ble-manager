@@ -17,12 +17,12 @@ import {
   TouchableHighlight,
   Pressable,
 } from 'react-native';
-
+import {Buffer} from 'buffer';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
 const SECONDS_TO_SCAN_FOR = 7;
 const SERVICE_UUIDS: string[] = [];
-const ALLOW_DUPLICATES = true;
+const ALLOW_DUPLICATES = false;
 
 import BleManager, {
   BleDisconnectPeripheralEvent,
@@ -106,7 +106,7 @@ const App = () => {
   const handleUpdateValueForCharacteristic = (
     data: BleManagerDidUpdateValueForCharacteristicEvent,
   ) => {
-    console.debug(
+    console.log(
       `[handleUpdateValueForCharacteristic] received data from '${data.peripheral}' with characteristic='${data.characteristic}' and value='${data.value}'`,
     );
   };
@@ -193,16 +193,16 @@ const App = () => {
             if (characteristic.descriptors) {
               for (let descriptor of characteristic.descriptors) {
                 try {
-                  let data = await BleManager.readDescriptor(
-                    peripheral.id,
-                    characteristic.service,
-                    characteristic.characteristic,
-                    descriptor.uuid,
-                  );
-                  console.debug(
-                    `[connectPeripheral][${peripheral.id}] descriptor read as:`,
-                    data,
-                  );
+                  // let data = await BleManager.readDescriptor(
+                  //   peripheral.id,
+                  //   characteristic.service,
+                  //   characteristic.characteristic,
+                  //   descriptor.uuid,
+                  // );
+                  // console.debug(
+                  //   `[connectPeripheral][${peripheral.id}] descriptor read as:`,
+                  //   data,
+                  // );
                 } catch (error) {
                   console.error(
                     `[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`,
@@ -332,6 +332,60 @@ const App = () => {
     );
   };
 
+  const test = async () => {
+    const peripheralData = await BleManager.retrieveServices(
+      'd3db849f-5516-551e-c2ef-51acbbb3fee0',
+    );
+
+    console.log('aaa', JSON.stringify(peripheralData));
+
+    const buffer = Buffer.from([1, 1]);
+
+    BleManager.writeWithoutResponse(
+      'd3db849f-5516-551e-c2ef-51acbbb3fee0',
+      'ffe0',
+      'ffe1',
+      // encode & extract raw `number[]`.
+      // Each number should be in the 0-255 range as it is converted from a valid byte.
+      buffer.toJSON().data,
+    )
+      .then(() => {
+        // Success code
+        console.log('test1:');
+      })
+      .catch(error => {
+        // Failure code
+        console.log(error);
+      });
+
+    const qzdqq = await BleManager.retrieveServices(
+      'd3db849f-5516-551e-c2ef-51acbbb3fee0',
+    );
+    console.log('bbb', JSON.stringify(qzdqq));
+
+    BleManager.read(
+      'd3db849f-5516-551e-c2ef-51acbbb3fee0',
+      'ffe0',
+      'ffe1',
+      // encode & extract raw `number[]`.
+      // Each number should be in the 0-255 range as it is converted from a valid byte.
+    )
+      .then(dataz => {
+        // Success code
+        console.log('test2:' + dataz);
+      })
+      .catch(error => {
+        // Failure code
+        console.log(error);
+      });
+
+    const qsdqsqs = await BleManager.retrieveServices(
+      'd3db849f-5516-551e-c2ef-51acbbb3fee0',
+    );
+
+    console.log('ccc', JSON.stringify(qsdqsqs));
+  };
+
   return (
     <>
       <StatusBar />
@@ -346,6 +400,10 @@ const App = () => {
           <Text style={styles.scanButtonText}>
             {'Retrieve connected peripherals'}
           </Text>
+        </Pressable>
+
+        <Pressable style={styles.scanButton} onPress={test}>
+          <Text style={styles.scanButtonText}>{'yolo'}</Text>
         </Pressable>
 
         {Array.from(peripherals.values()).length === 0 && (
